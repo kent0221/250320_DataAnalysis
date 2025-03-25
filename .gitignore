@@ -1,0 +1,58 @@
+# 環境変数
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# データベース
+*.sql
+*.sqlite
+*.db
+
+# MySQLデータ
+data/mysql/*
+!data/mysql/.gitkeep
+
+# ダンプファイル
+*.dump
+*.dmp
+*.sql.gz
+
+# ログ
+*.log
+logs/
+
+# 出力ファイル
+*.csv
+output/
+
+# OS固有
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo 

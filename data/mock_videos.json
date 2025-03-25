@@ -1,0 +1,68 @@
+[
+  {
+    "id": "7112345678901234567",
+    "desc": "人気のトレンド動画 #ダンス #流行",
+    "createTime": 1656172800,
+    "author": {
+      "uniqueId": "popular_creator",
+      "nickname": "人気クリエイター"
+    },
+    "stats": {
+      "diggCount": 150000,
+      "commentCount": 3000,
+      "shareCount": 20000,
+      "playCount": 500000
+    },
+    "music": {
+      "title": "トレンド曲1",
+      "authorName": "人気アーティスト"
+    },
+    "video": {
+      "playAddr": "https://example.com/video1"
+    }
+  },
+  {
+    "id": "7212345678901234568",
+    "desc": "おもしろ動画 #コメディ #笑える",
+    "createTime": 1656259200,
+    "author": {
+      "uniqueId": "funny_creator",
+      "nickname": "おもしろクリエイター"
+    },
+    "stats": {
+      "diggCount": 200000,
+      "commentCount": 5000,
+      "shareCount": 25000,
+      "playCount": 700000
+    },
+    "music": {
+      "title": "コメディBGM",
+      "authorName": "BGMクリエイター"
+    },
+    "video": {
+      "playAddr": "https://example.com/video2"
+    }
+  },
+  {
+    "id": "7312345678901234569",
+    "desc": "料理レシピ #簡単料理 #時短レシピ",
+    "createTime": 1656345600,
+    "author": {
+      "uniqueId": "cooking_master",
+      "nickname": "料理の達人"
+    },
+    "stats": {
+      "diggCount": 80000,
+      "commentCount": 1500,
+      "shareCount": 12000,
+      "playCount": 300000
+    },
+    "music": {
+      "title": "クッキングBGM",
+      "authorName": "料理チャンネル"
+    },
+    "video": {
+      "playAddr": "https://example.com/video3"
+    }
+  }
+]

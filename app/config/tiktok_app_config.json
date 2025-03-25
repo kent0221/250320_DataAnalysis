@@ -1,0 +1,22 @@
+{
+  "app_info": {
+    "name": "TikTok Data Analytics Tool",
+    "version": "1.0.0",
+    "description": "Personal TikTok video analysis tool for content creators",
+    "category": "Analytics",
+    "platform": "Web"
+  },
+  "api_scopes": [
+    "login.basic",
+    "video.list",
+    "video.query",
+    "user.info",
+    "video.search",
+    "user.info.basic",
+    "video.list.basic"
+  ],
+  "redirect_uris": [
+    "http://localhost:3000/auth/callback",
+    "https://your-production-domain.com/auth/callback"
+  ]
+} 
