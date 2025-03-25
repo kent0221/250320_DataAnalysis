@@ -36,7 +36,10 @@ APP_NAME = "TikTok Data Analytics Tool"
 APP_VERSION = "1.0.0"
 APP_DESCRIPTION = """
 個人利用のためのTikTok動画分析ツール。
-動画の統計データを取得し、分析用にCSV出力を行います。
+以下の機能を提供します：
+- 動画統計データの取得
+- ローカルデータベースへの保存
+- CSV形式でのデータエクスポート
 """
 
 # API設定
@@ -49,4 +52,8 @@ DB_COLLATION = "utf8mb4_unicode_ci"
 
 # セキュリティ設定
 MIN_PASSWORD_LENGTH = 12
-HASH_ALGORITHM = "bcrypt" 
+HASH_ALGORITHM = "bcrypt"
+
+# プライバシー設定の強化
+PRIVACY_POLICY_URL = "https://yourusername.github.io/DataAnalysis/PRIVACY"
+TERMS_URL = "https://yourusername.github.io/DataAnalysis/TERMS" 
