@@ -61,11 +61,11 @@ MIT License - 詳細は[LICENSE](LICENSE)をご覧ください。
 - 取得したデータは個人の分析目的でのみ使用
 - データは暗号化されたローカルデータベースに保存
 - 個人情報は収集・保存しません
-- 詳細は[プライバシーポリシー](https://github.com/kent0221/250320_DataAnalysis/PRIVACY)をご確認ください
+- 詳細は[プライバシーポリシー](../docs/PRIVACY.md)をご確認ください
 
 ## 利用規約
 
-本ツールのご利用前に[利用規約](https://github.com/kent0221/250320_DataAnalysis/TERMS)をご確認ください。
+本ツールのご利用前に[利用規約](../docs/TERMS)をご確認ください。
 
 ## 機能
 
@@ -148,9 +148,9 @@ mysql -u root -p < setup/init.sql
 
 ## プライバシーとセキュリティ
 
-- [プライバシーポリシー](https://github.com/kent0221/250320_DataAnalysis/PRIVACY)
-- [利用規約](https://github.com/kent0221/250320_DataAnalysis/TERMS)
-- [セキュリティポリシー](https://github.com/kent0221/250320_DataAnalysis/SECURITY)
+- [プライバシーポリシー](../docs/PRIVACY)
+- [利用規約](../docs/TERMS)
+- [セキュリティポリシー](../docs/SECURITY)
 
 ## TikTok API 利用について
 
