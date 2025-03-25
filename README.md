@@ -65,7 +65,7 @@ MIT License - 詳細は[LICENSE](LICENSE)をご覧ください。
 
 ## 利用規約
 
-本ツールのご利用前に[利用規約](docs/TERMS)をご確認ください。
+本ツールのご利用前に[利用規約](docs/TERMS.md)をご確認ください。
 
 ## 機能
 
@@ -148,9 +148,9 @@ mysql -u root -p < setup/init.sql
 
 ## プライバシーとセキュリティ
 
-- [プライバシーポリシー](../docs/PRIVACY)
-- [利用規約](../docs/TERMS)
-- [セキュリティポリシー](../docs/SECURITY)
+- [プライバシーポリシー](docs/PRIVACY.md)
+- [利用規約](docs/TERMS.md)
+- [セキュリティポリシー](docs/SECURITY.md)
 
 ## TikTok API 利用について
 
