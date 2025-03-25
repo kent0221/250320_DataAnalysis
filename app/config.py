@@ -4,6 +4,13 @@ from dotenv import load_dotenv
 # .envファイルの読み込み
 load_dotenv()
 
+# データベース設定を追加
+DB_HOST = os.getenv("DB_HOST", "db")  # デフォルト値としてdocker-compose のサービス名
+DB_PORT = os.getenv("DB_PORT", 3306)
+DB_USER = os.getenv("DB_USER", "tiktok_user")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_NAME = os.getenv("DB_NAME", "tiktok_analysis")
+
 # API設定
 USE_MOCK_API = os.getenv("USE_MOCK_API", "true").lower() == "true"
 TIKTOK_API_KEY = os.getenv("TIKTOK_API_KEY", "")

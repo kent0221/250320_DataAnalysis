@@ -139,3 +139,9 @@ docker-compose up -d
 ```bash
 mysql -u root -p < setup/init.sql
 ```
+
+## セキュリティ注意事項
+
+- `.env`ファイルは決して GitHub にコミットしないでください
+- API キーやデータベースパスワードは必ず安全に管理してください
+- 本番環境では`USE_MOCK_API=false`に設定してください

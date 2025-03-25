@@ -36,7 +36,13 @@ async def get_videos_by_mode(api_client, mode, search_term=None, count=10, sort_
     
     if mode == "trend":
         print(f"トレンド動画を取得しています...")
-        videos = api_client.get_trending_videos(count=count, sort_by=sort_by, min_views=min_views)
+        videos = await api_client.get_trending_videos(
+            count=count,
+            sort_by=sort_by,
+            min_views=min_views,
+            min_likes=min_likes,
+            days_ago=days_ago
+        )
         
     elif mode == "hashtag":
         # #が含まれている場合は削除

@@ -1,10 +1,22 @@
+# OneDrive関連
+.OneDrive*
+OneDrive*
+
+# 一般的な除外設定
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+.DS_Store
+
 # 環境変数
 .env
 .env.*
 !.env.example
 
 # Python
-__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -30,7 +42,7 @@ var/
 *.sqlite
 *.db
 
-# MySQLデータ
+# MySQL関連
 data/mysql/*
 !data/mysql/.gitkeep
 
@@ -39,20 +51,31 @@ data/mysql/*
 *.dmp
 *.sql.gz
 
-# ログ
+# ログファイル
 *.log
 logs/
+app.log
 
 # 出力ファイル
 *.csv
 output/
 
-# OS固有
-.DS_Store
-Thumbs.db
-
 # IDE
 .idea/
 .vscode/
 *.swp
-*.swo 
+*.swo
+
+# 一時ファイル
+*.tmp
+.temp/
+
+# 追加のセキュリティ関連の設定
+.env
+*.log
+__pycache__/
+logs/
+*.pyc
+.DS_Store
+.vscode/
+data/*.json 

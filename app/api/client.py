@@ -8,6 +8,19 @@ from app.config import (
     USE_MOCK_API, TIKTOK_API_KEY, TIKTOK_API_SECRET, 
     TIKTOK_ACCESS_TOKEN, API_RATE_LIMIT, API_RATE_WINDOW
 )
+import logging
+from typing import Dict, Any, Optional
+
+# ロガーの設定
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('app.log'),
+        logging.StreamHandler()
+    ]
+)
 
 class APIError(Exception):
     """TikTok API固有のエラー"""
@@ -27,26 +40,33 @@ class TikTokAPIClient:
     ]
     
     def __init__(self, use_mock=None):
-        self.base_url = "https://open.tiktokapis.com/v2/"
-        self._initialize_config(use_mock)
+        self.logger = logging.getLogger(__name__)
+        self.logger.info("TikTokAPIClientが初期化されました")
+        
+        # use_mockのデフォルト値をconfigから取得
+        if use_mock is None:
+            use_mock = USE_MOCK_API
+            
+        self.use_mock = use_mock
+        
+        # モックモードの場合、mock_clientを初期化
+        if self.use_mock:
+            from app.api.mock import MockTikTokAPI
+            self.mock_client = MockTikTokAPI()
+        else:
+            self.api_key = TIKTOK_API_KEY
+            self.api_secret = TIKTOK_API_SECRET
+            self.access_token = TIKTOK_ACCESS_TOKEN
+        
         self._initialize_rate_limit()
-        
-    def _initialize_config(self, use_mock):
-        """設定の初期化"""
-        self.use_mock = USE_MOCK_API if use_mock is None else use_mock
-        self.api_key = TIKTOK_API_KEY
-        self.api_secret = TIKTOK_API_SECRET
-        self.access_token = TIKTOK_ACCESS_TOKEN
-        
-        if not self.use_mock and not all([self.api_key, self.api_secret, self.access_token]):
-            raise ValueError("TikTok API認証情報が不足しています")
-
+    
     def _initialize_rate_limit(self):
         """レート制限の初期化"""
         self.rate_limit = {
             "requests": 0,
             "reset_time": datetime.now()
         }
+        logger.debug("レート制限が初期化されました")
     
     def _check_rate_limit(self):
         """レート制限をチェック（600回/分に修正）"""
@@ -56,8 +76,10 @@ class TikTokAPIClient:
         if current_time >= self.rate_limit["reset_time"]:
             self.rate_limit["requests"] = 0
             self.rate_limit["reset_time"] = current_time + timedelta(seconds=API_RATE_WINDOW)
+            logger.debug("レート制限カウンターがリセットされました")
             
         if self.rate_limit["requests"] >= 600:  # TikTok APIの制限に合わせて修正
+            logger.warning("レート制限に達しました")
             raise APIError("Rate limit exceeded", status_code=429)
             
         self.rate_limit["requests"] += 1
@@ -84,14 +106,16 @@ class TikTokAPIClient:
                 error_code=response.json().get("error_code")
             )
 
-    async def get_trending_videos(self, count=10, min_views=0, sort_by="views"):
+    async def get_trending_videos(self, count=10, sort_by="views", min_views=1000, min_likes=0, days_ago=None):
         """
         トレンド動画を取得する関数（非同期ではなく同期的に動作）
         
         Args:
             count: 取得する動画数
-            min_views: 最小再生回数
             sort_by: ソート基準 ("views", "likes", "comments", "shares")
+            min_views: 最小再生回数
+            min_likes: 最小いいね数
+            days_ago: 過去の日数
             
         Returns:
             動画データのリスト
@@ -111,7 +135,8 @@ class TikTokAPIClient:
         data = {
             "max_count": count,
             "filters": {
-                "stats.viewCount": {"gte": min_views}
+                "stats.viewCount": {"gte": min_views},
+                "like_count": {"gte": min_likes}
             },
             "sort_type": sort_by
         }
