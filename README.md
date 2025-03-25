@@ -16,7 +16,7 @@
 1. リポジトリのクローン
 
 ```bash
-git clone https://github.com/yourusername/DataAnalysis.git
+git clone https://github.com/kent0221/250320_DataAnalysis.git
 cd DataAnalysis
 ```
 
@@ -111,7 +111,7 @@ MIT License - 詳細は[LICENSE](LICENSE)をご覧ください。
 
 ## API 制限
 
-- TikTok API の制限：1 分あたり 1000 リクエスト
+- TikTok API の制限：1 分あたり 600 リクエスト
 - Login Kit 必須
 - 個人利用目的のみ
 
@@ -155,5 +155,5 @@ mysql -u root -p < setup/init.sql
 ## TikTok API 利用について
 
 - 個人利用目的のみ
-- API レート制限：600 リクエスト/分
+- API レート制限：1000 リクエスト/分
 - データの暗号化保存

@@ -55,5 +55,6 @@ MIN_PASSWORD_LENGTH = 12
 HASH_ALGORITHM = "bcrypt"
 
 # プライバシー設定の強化
-PRIVACY_POLICY_URL = "https://yourusername.github.io/DataAnalysis/PRIVACY"
-TERMS_URL = "https://yourusername.github.io/DataAnalysis/TERMS" 
+PRIVACY_POLICY_URL = "https://github.com/kent0221/250320_DataAnalysis/blob/master/docs/PRIVACY.md"
+TERMS_URL = "https://github.com/kent0221/250320_DataAnalysis/blob/master/docs/TERMS.md"
+SECURITY_POLICY_URL = "https://github.com/kent0221/250320_DataAnalysis/blob/master/docs/SECURITY.md" 
