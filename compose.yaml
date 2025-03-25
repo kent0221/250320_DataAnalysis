@@ -3,22 +3,25 @@ services:
     build: .
     volumes:
       - .:/app
-    depends_on:
-      - db
-    env_file:
-      - .env
     environment:
+      - PYTHONPATH=/app
+      - TERM=xterm-256color  # ターミナル出力用
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
+    tty: true
+    depends_on:
+      - db
+    env_file:
+      - .env
     command: tail -f /dev/null
 
   db:
     image: mysql:8.0
     volumes:
-      - tiktok_data:/var/lib/mysql
+      - ./data/mysql:/var/lib/mysql
     env_file:
       - .env
     environment:

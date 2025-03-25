@@ -11,6 +11,7 @@ from app.api.client import TikTokAPIClient
 from app.db import setup_database, save_video_data, get_saved_videos, get_video_statistics, export_to_csv
 from app.models import VideoData
 from app.config import USE_MOCK_API
+from app.ui.terminal_ui import TerminalUI
 
 # 環境変数の読み込み
 load_dotenv()
@@ -108,191 +109,44 @@ async def interactive_mode():
     # APIクライアントの初期化（環境変数から設定を読み込む）
     api_client = TikTokAPIClient()
     
+    ui = TerminalUI()
+    
     while True:
-        print("\n取得モードを選択してください:")
-        print("1. トレンド動画")
-        print("2. ハッシュタグ指定")
-        print("3. 動画URL指定")
-        print("0. 終了")
-        
-        mode_choice = input("選択 (0-3): ").strip()
-        
-        if mode_choice == "0":
-            print("アプリケーションを終了します。")
-            break
-            
-        # パラメータの初期値
-        search_term = None
-        count = 10
-        sort_by = "views"
-        min_views = 1000
-        min_likes = 0
-        days_ago = None
-        
-        # モード別の処理
-        if mode_choice == "1":
-            mode = "trend"
-            # トレンド動画の場合のパラメータ入力
-            count = int(input("取得する動画数 (デフォルト: 10): ").strip() or "10")
-            
-            print("ソート基準を選択してください:")
-            print("1. 再生回数 (多い順)")
-            print("2. いいね数 (多い順)")
-            print("3. 投稿日時 (新しい順)")
-            sort_choice = input("選択 (1-3, デフォルト: 1): ").strip() or "1"
-            
-            sort_mapping = {"1": "views", "2": "likes", "3": "date"}
-            sort_by = sort_mapping.get(sort_choice, "views")
-            
-            min_views_input = input("最小再生回数 (デフォルト: 1000): ").strip()
-            min_views = int(min_views_input) if min_views_input else 1000
-            
-            min_likes_input = input("最小いいね数 (デフォルト: 0): ").strip()
-            min_likes = int(min_likes_input) if min_likes_input else 0
-            
-            days_ago_input = input("何日前までの動画を対象にするか (デフォルト: 指定なし): ").strip()
-            days_ago = int(days_ago_input) if days_ago_input else None
-            
-        elif mode_choice == "2":
-            mode = "hashtag"
-            # ハッシュタグ指定の場合のパラメータ入力
-            search_term = input("ハッシュタグを入力 (#は省略可, 空の場合は全てのハッシュタグ): ").strip()
-            
-            # ハッシュタグが空の場合は特別に処理（トレンド動画と同様に扱う）
-            is_empty_hashtag = not search_term
-            
-            count = int(input("取得する動画数 (デフォルト: 10): ").strip() or "10")
-            
-            print("ソート基準を選択してください:")
-            print("1. 再生回数 (多い順)")
-            print("2. いいね数 (多い順)")
-            print("3. 投稿日時 (新しい順)")
-            sort_choice = input("選択 (1-3, デフォルト: 1): ").strip() or "1"
-            
-            sort_mapping = {"1": "views", "2": "likes", "3": "date"}
-            sort_by = sort_mapping.get(sort_choice, "views")
-            
-            min_views_input = input("最小再生回数 (デフォルト: 1000): ").strip()
-            min_views = int(min_views_input) if min_views_input else 1000
-            
-            min_likes_input = input("最小いいね数 (デフォルト: 0): ").strip()
-            min_likes = int(min_likes_input) if min_likes_input else 0
-            
-            days_ago_input = input("何日前までの動画を対象にするか (デフォルト: 指定なし): ").strip()
-            days_ago = int(days_ago_input) if days_ago_input else None
-            
-        elif mode_choice == "3":
-            mode = "video"
-            # 動画URL指定の場合のパラメータ入力
-            video_urls = []
-            while True:
-                url = input("動画URLまたはIDを入力: ").strip()
-                if url:
-                    video_urls.append(url)
+        # 初期画面
+        choice = ui.initial_screen()
+        if choice == "1":
+            # 接続画面
+            choice = ui.connecting_screen()
+            if choice == "1":
+                # 認証画面
+                ui.auth_screen()
+                # 認証処理（実際のAPI呼び出しはここで行う）
+                time.sleep(2)  # 認証処理の模擬
                 
-                add_more = input("さらに動画URLを追加しますか？ (y/n): ").strip().lower()
-                if add_more != 'y':
+                # 結果画面
+                data_summary = {
+                    "video_count": 10,
+                    "total_views": 1000,
+                    "total_likes": 500
+                }
+                choice = ui.results_screen(data_summary)
+                if choice == "1":
+                    print("Exporting to CSV...")
+                elif choice == "2":
+                    print("Displaying data summary...")
+                elif choice == "3":
+                    print("Deleting data...")
+                elif choice == "4":
                     break
-                    
-            if not video_urls:
-                print("動画URLが指定されていません。最初からやり直してください。")
+            elif choice == "2":
                 continue
-                
-            search_term = video_urls
-            
-            # 動画URL指定の場合は他の条件指定は不要
-            count = len(video_urls)  # URLの数と同じにする
-            
-        else:
-            print("無効な選択です。もう一度お試しください。")
-            continue
-        
-        # パラメータ確認
-        print("\n=== 実行パラメータ ===")
-        print(f"取得モード: {mode}")
-        
-        if mode == "hashtag":
-            if is_empty_hashtag:
-                print("ハッシュタグ: 指定なし（全ハッシュタグ対象）")
-            else:
-                print(f"ハッシュタグ: {search_term}")
-            print(f"取得数: {count}")
-            print(f"ソート基準: {sort_by}")
-            print(f"最小再生回数: {min_views}")
-            if min_likes > 0:
-                print(f"最小いいね数: {min_likes}")
-            if days_ago:
-                print(f"対象期間: 過去{days_ago}日以内")
-                
-        elif mode == "trend":
-            print(f"取得数: {count}")
-            print(f"ソート基準: {sort_by}")
-            print(f"最小再生回数: {min_views}")
-            if min_likes > 0:
-                print(f"最小いいね数: {min_likes}")
-            if days_ago:
-                print(f"対象期間: 過去{days_ago}日以内")
-                
-        elif mode == "video":
-            # 動画URL指定の場合は、URLのみ表示
-            print(f"動画URL: {', '.join(search_term)}")
-        
-        # 実行確認
-        confirm = input("\n上記の条件で実行しますか？ (y/n): ").strip().lower()
-        if confirm != 'y':
-            print("実行をキャンセルしました。")
-            continue
-        
-        # 動画データ取得
-        if mode == "hashtag" and is_empty_hashtag:
-            # 空のハッシュタグの場合はトレンド動画として扱う
-            print("ハッシュタグが指定されていないため、トレンド動画を取得します...")
-            videos = await get_videos_by_mode(
-                api_client, 
-                "trend",  # トレンドモードで取得
-                search_term=None,
-                count=count, 
-                sort_by=sort_by, 
-                min_views=min_views,
-                min_likes=min_likes,
-                days_ago=days_ago
-            )
-        else:
-            videos = await get_videos_by_mode(
-                api_client, 
-                mode, 
-                search_term=search_term, 
-                count=count, 
-                sort_by=sort_by, 
-                min_views=min_views,
-                min_likes=min_likes,
-                days_ago=days_ago
-            )
-        
-        if not videos:
-            print("条件に合う動画が見つかりませんでした。")
-            continue
-            
-        print(f"{len(videos)}件の動画を取得しました")
-        
-        # VideoDataオブジェクトに変換
-        video_objects = [VideoData.from_api_response(v) for v in videos]
-        
-        # データベースに保存
-        save_video_data(video_objects)
-        print("データをデータベースに保存しました")
-        
-        # 動画情報をテーブル形式で表示
-        display_videos_table(videos)
-        
-        # CSVに出力
-        csv_filename = f"tiktok_{mode}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        export_to_csv([v.__dict__ for v in video_objects], csv_filename)
-        
-        # 次の操作の確認
-        next_action = input("\n続けて別の検索を行いますか？ (y/n): ").strip().lower()
-        if next_action != 'y':
-            print("アプリケーションを終了します。")
+            elif choice == "3":
+                break
+        elif choice == "2":
+            print("Opening Privacy Policy...")
+        elif choice == "3":
+            print("Opening Terms of Service...")
+        elif choice == "4":
             break
 
 def display_videos_table(videos):
