@@ -1,23 +1,38 @@
-# TikTok 動画分析ツール - アプリケーション説明
+# TikTok Data Analytics Tool - Application Description
 
-## 使用目的
+## Overview
 
-このツールは個人の TikTok コンテンツ分析を目的としています。
+A personal-use command-line tool for analyzing TikTok video statistics.
 
-## データ取得範囲
+## Purpose
 
-- 公開されている動画の統計情報
-- ハッシュタグ検索結果
-- トレンド動画情報
+- Fetch and analyze public video data
+- Track video performance metrics
+- Generate CSV reports for personal analysis
 
-## プライバシーとデータ保護
+## Technical Details
 
-- データは暗号化してローカルに保存
-- 個人情報は最小限の取得
-- 30 日後の自動データ削除
+- Built with Python 3.8
+- Uses official TikTok API
+- Local MySQL database storage
+- AES-256 encryption for data protection
 
-## API 利用について
+## Data Collection
 
-- レート制限の遵守（1 分あたり 600 リクエスト）
-- 個人利用目的のみ
-- 商用利用は禁止
+- Public video statistics only
+- No personal user data stored
+- Automatic data deletion after 30 days
+
+## API Usage
+
+- Respects rate limits (600 requests/minute)
+- Required scopes:
+  - video.list
+  - video.query
+  - user.info.basic
+
+## Security Measures
+
+- Encrypted local storage
+- No third-party data sharing
+- Secure credential management

@@ -2,32 +2,31 @@
 
 ## 1. 初期画面
 
-![初期画面](images/initial_screen.png)
+![初期画面](images/screens/initial_screen.png)
 
 - TikTok データ分析ツールの説明
 - 「TikTok と連携」ボタン
 - プライバシーポリシーと利用規約へのリンク
 
-## 2. 認証画面
+## 2. 接続画面
 
-![認証画面](images/auth_screen.png)
+![接続画面](images/screens/connecting_screen.png)
 
-- TikTok アカウントでのログイン
-- 必要な権限の説明
-- データ使用目的の明示
+- データ収集の範囲と目的の説明
+- データ保護方針の詳細
+- 進行/戻る選択肢
 
-## 3. データ取得設定画面
+## 3. 認証画面
 
-![設定画面](images/settings_screen.png)
+![認証画面](images/screens/auth_screen.png)
 
-- 分析対象の選択（トレンド/ハッシュタグ/特定動画）
-- 取得件数の設定
-- フィルタリング条件の設定
+- TikTok 標準認証画面
+- ユーザー認証プロセスの説明
 
-## 4. 分析結果画面
+## 4. 結果画面
 
-![結果画面](images/results_screen.png)
+![結果画面](images/screens/results_screen.png)
 
-- 取得したデータの表示
-- CSV エクスポート機能
-- データの保存と削除オプション
+- 接続成功の確認
+- データ取得結果の表示
+- データ操作オプション

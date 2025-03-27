@@ -5,7 +5,7 @@ import random
 from datetime import datetime, timedelta
 import time
 from typing import List, Dict, Any, Optional
-from app.api.client import APIError  # client.pyからAPIErrorをインポート
+from app.api.exceptions import APIError  # client.pyではなくexceptions.pyからインポート
 
 # モックデータファイルのパス
 MOCK_DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'mock_videos.json')
@@ -84,44 +84,21 @@ def generate_mock_data(count: int = 30) -> List[Dict[str, Any]]:
     
     return videos
 
-def get_mock_trending_videos(count: int = 20, sort_by: str = "views", min_views: int = 0) -> List[Dict[str, Any]]:
-    """
-    モックのトレンド動画を取得する関数
+def get_mock_trending_videos(count=10, sort_by="views", min_views=0):
+    """モックのトレンド動画データを生成"""
+    videos = generate_mock_data(count * 2)  # フィルタリング用に多めに生成
     
-    Args:
-        count: 取得する動画数
-        sort_by: ソート基準 ("views", "likes", "comments", "shares")
-        min_views: 最小再生回数
-    
-    Returns:
-        動画データのリスト
-    """
-    print(f"モックデータからトレンド動画を取得します... ソート: {sort_by}, 最小再生回数: {min_views}")
-    
-    # モックデータの読み込み
-    videos = load_mock_data()
-    
-    # 最小再生回数でフィルタリング
+    # フィルタリングと並び替え
     filtered_videos = [v for v in videos if v["stats"]["playCount"] >= min_views]
     
-    # ソート
     if sort_by == "views":
         filtered_videos.sort(key=lambda x: x["stats"]["playCount"], reverse=True)
     elif sort_by == "likes":
         filtered_videos.sort(key=lambda x: x["stats"]["diggCount"], reverse=True)
-    elif sort_by == "comments":
-        filtered_videos.sort(key=lambda x: x["stats"]["commentCount"], reverse=True)
-    elif sort_by == "shares":
-        filtered_videos.sort(key=lambda x: x["stats"]["shareCount"], reverse=True)
-    
-    # 指定の数まで切り詰める
-    result_videos = filtered_videos[:count]
-    
-    # 遅延をシミュレート（API呼び出しのような体験）
-    time.sleep(0.5)
-    
-    print(f"{len(result_videos)}件のトレンド動画を取得しました")
-    return result_videos
+    elif sort_by == "date":
+        filtered_videos.sort(key=lambda x: x["createTime"], reverse=True)
+        
+    return filtered_videos[:count]
 
 def get_mock_user_videos(username: str, count: int = 20, sort_by: str = "views") -> List[Dict[str, Any]]:
     """

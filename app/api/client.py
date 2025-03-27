@@ -6,10 +6,14 @@ import json
 import time
 from app.config import (
     USE_MOCK_API, TIKTOK_API_KEY, TIKTOK_API_SECRET, 
-    TIKTOK_ACCESS_TOKEN, API_RATE_LIMIT, API_RATE_WINDOW
+    TIKTOK_ACCESS_TOKEN, API_RATE_LIMIT, API_RATE_WINDOW, API_BASE_URL
 )
+from app.api.exceptions import APIError
+from app.api.mock import MockTikTokAPI
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
+import webbrowser
+from urllib.parse import urlencode
 
 # ロガーの設定
 logger = logging.getLogger(__name__)
@@ -22,14 +26,6 @@ logging.basicConfig(
     ]
 )
 
-class APIError(Exception):
-    """TikTok API固有のエラー"""
-    def __init__(self, message, status_code=None, error_code=None):
-        self.message = message
-        self.status_code = status_code
-        self.error_code = error_code
-        super().__init__(self.message)
-
 class TikTokAPIClient:
     """TikTok公式APIのクライアントクラス"""
     
@@ -39,24 +35,15 @@ class TikTokAPIClient:
         "video.list.basic",     # 動画基本情報
     ]
     
-    def __init__(self, use_mock=None):
+    def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.logger.info("TikTokAPIClientが初期化されました")
         
-        # use_mockのデフォルト値をconfigから取得
-        if use_mock is None:
-            use_mock = USE_MOCK_API
-            
-        self.use_mock = use_mock
-        
-        # モックモードの場合、mock_clientを初期化
-        if self.use_mock:
-            from app.api.mock import MockTikTokAPI
-            self.mock_client = MockTikTokAPI()
-        else:
-            self.api_key = TIKTOK_API_KEY
-            self.api_secret = TIKTOK_API_SECRET
-            self.access_token = TIKTOK_ACCESS_TOKEN
+        self.use_mock = os.getenv("USE_MOCK_API", "true").lower() == "true"
+        self.mock_client = MockTikTokAPI() if self.use_mock else None
+        self.base_url = API_BASE_URL
+        self.api_key = os.getenv("TIKTOK_API_KEY")
+        self.redirect_uri = os.getenv("REDIRECT_URI")
         
         self._initialize_rate_limit()
     
@@ -106,23 +93,51 @@ class TikTokAPIClient:
                 error_code=response.json().get("error_code")
             )
 
-    async def get_trending_videos(self, count=10, sort_by="views", min_views=1000, min_likes=0, days_ago=None):
-        """
-        トレンド動画を取得する関数（非同期ではなく同期的に動作）
-        
-        Args:
-            count: 取得する動画数
-            sort_by: ソート基準 ("views", "likes", "comments", "shares")
-            min_views: 最小再生回数
-            min_likes: 最小いいね数
-            days_ago: 過去の日数
-            
-        Returns:
-            動画データのリスト
-        """
+    async def fetch_videos(self, settings: Dict) -> List[Dict]:
+        """設定に基づいてデータを取得"""
+        try:
+            if settings["type"] == "hashtag":
+                if not settings.get("hashtag"):
+                    # ハッシュタグが空の場合はトレンド動画を取得
+                    return await self.get_trending_videos(
+                        count=settings["count"],
+                        min_views=settings.get("min_views", 0),
+                        sort_by=settings.get("sort_by", "views")
+                    )
+                return await self.get_hashtag_videos(
+                    hashtag=settings["hashtag"],
+                    count=settings["count"],
+                    min_views=settings.get("min_views", 0),
+                    sort_by=settings.get("sort_by", "views")
+                )
+            elif settings["type"] == "trend":
+                return await self.get_trending_videos(
+                    count=settings["count"],
+                    min_views=settings["min_views"],
+                    min_likes=settings.get("min_likes", 0),
+                    sort_by=settings.get("sort_by", "views"),
+                    days_ago=settings.get("time_range")
+                )
+            elif settings["type"] == "video":
+                videos = []
+                for video_id in settings["video_ids"]:
+                    video = await self.get_video_by_id(video_id)
+                    if video:
+                        videos.append(video)
+                return videos
+                
+        except Exception as e:
+            print(f"データ取得エラー: {e}")
+            return []
+
+    async def get_trending_videos(self, count=10, min_views=1000, min_likes=0, sort_by="views", days_ago=None):
+        """トレンド動画の取得"""
         if self.use_mock:
-            # モッククライアントも同期的なメソッドを呼び出す
-            return self.mock_client.get_mock_trending_videos(count, min_views, sort_by)
+            return self.mock_client.get_mock_trending_videos(
+                count=count,
+                min_views=min_views,
+                sort_by=sort_by
+            )
         
         # 実際のAPI呼び出し
         headers = {
@@ -325,98 +340,58 @@ class TikTokAPIClient:
             traceback.print_exc()
             return []
     
-    def get_hashtag_videos(self, hashtag, count=20, sort_by="views", min_views=0):
-        """
-        特定ハッシュタグの動画を取得する関数
-        
-        Args:
-            hashtag: ハッシュタグ名（#なし）
-            count: 取得する動画数
-            sort_by: ソート基準 ("views", "likes", "comments")
-            min_views: 最小再生回数
-            
-        Returns:
-            動画データのリスト
-        """
+    async def get_hashtag_videos(self, hashtag, count=20, sort_by="views", min_views=0):
+        """ハッシュタグ付きの動画を取得する関数"""
         if self.use_mock:
             # モックデータを使用
             from app.api.mock import get_mock_hashtag_videos
             return get_mock_hashtag_videos(hashtag, count, sort_by, min_views)
         
-        # 実際のAPI呼び出し
         try:
             endpoint = "video/search/"
             headers = {
                 "Authorization": f"Bearer {self.access_token}",
                 "Content-Type": "application/json"
             }
-            params = {
-                "query": f"#{hashtag}",
-                "fields": "id,video_description,create_time,like_count,comment_count,share_count,view_count,music_info,author,embed_link",
-                "max_count": count * 2  # より多く取得して後でフィルタリング
+            
+            # APIリクエストのボディ
+            data = {
+                "query": {
+                    "and": [
+                        {
+                            "operation": "EQ",
+                            "field_name": "hashtag_name",
+                            "field_values": [hashtag]
+                        }
+                    ]
+                },
+                "max_count": count
             }
             
-            response = requests.get(
+            self._check_rate_limit()
+            response = await self.session.post(
                 f"{self.base_url}{endpoint}",
                 headers=headers,
-                params=params
+                json=data
             )
             
-            if response.status_code != 200:
-                print(f"ハッシュタグ検索エラー: ステータスコード {response.status_code}")
-                print(f"レスポンス: {response.text}")
-                return []
+            if response.status != 200:
+                raise APIError(f"ハッシュタグ検索エラー: {response.status}", response.status)
             
-            data = response.json()
-            videos = data.get("data", {}).get("videos", [])
+            result = await response.json()
+            videos = result.get("data", {}).get("videos", [])
             
             # データの変換とフィルタリング
-            formatted_videos = []
-            for video in videos:
-                if video.get("view_count", 0) >= min_views:
-                    formatted_videos.append({
-                        "id": video.get("id"),
-                        "desc": video.get("video_description", ""),
-                        "createTime": datetime.fromisoformat(video.get("create_time")).timestamp(),
-                        "author": {
-                            "uniqueId": video.get("author", {}).get("username", ""),
-                            "nickname": video.get("author", {}).get("display_name", "")
-                        },
-                        "stats": {
-                            "diggCount": video.get("like_count", 0),
-                            "commentCount": video.get("comment_count", 0),
-                            "shareCount": video.get("share_count", 0),
-                            "playCount": video.get("view_count", 0)
-                        },
-                        "music": {
-                            "title": video.get("music_info", {}).get("title", ""),
-                            "authorName": video.get("music_info", {}).get("author", "")
-                        },
-                        "video": {
-                            "playAddr": video.get("embed_link", "")
-                        }
-                    })
+            formatted_videos = self._format_video_data(videos, min_views)
             
-            # ソート
-            if sort_by == "views":
-                formatted_videos.sort(key=lambda x: x["stats"]["playCount"], reverse=True)
-            elif sort_by == "likes":
-                formatted_videos.sort(key=lambda x: x["stats"]["diggCount"], reverse=True)
-            elif sort_by == "comments":
-                formatted_videos.sort(key=lambda x: x["stats"]["commentCount"], reverse=True)
-            
-            # ハッシュタグ分析データの追加
-            result_videos = formatted_videos[:count]
-            
-            return result_videos
+            # ソート処理
+            return self._sort_videos(formatted_videos, sort_by)[:count]
             
         except Exception as e:
-            print(f"ハッシュタグ動画取得エラー: {e}")
-            import traceback
-            traceback.print_exc()
+            logger.error(f"ハッシュタグ動画取得エラー: {e}")
             return []
 
-    def get_video_by_id(self, video_id):
+    async def get_video_by_id(self, video_id):
         """
         特定の動画IDから動画を取得する関数
         
@@ -479,3 +454,34 @@ class TikTokAPIClient:
             raise APIError(error_message, response.status_code, response)
         except ValueError:
             raise APIError("Invalid API response", response.status_code, response)
+
+    async def authenticate(self):
+        """TikTok認証処理"""
+        try:
+            if self.use_mock:
+                return True
+            
+            # 認証パラメータの設定
+            auth_params = {
+                "client_key": self.api_key,
+                "redirect_uri": self.redirect_uri,
+                "response_type": "code",
+                "scope": "user.info.basic,video.list",
+                "state": "your-state-value"
+            }
+            
+            # 認証URLの構築
+            auth_url = "https://www.tiktok.com/auth/authorize/?" + urlencode(auth_params)
+            
+            # ブラウザでTikTokログインページを開く
+            print("\nOpening TikTok login page in your browser...")
+            webbrowser.open(auth_url)
+            
+            # ユーザーが認証を完了するまで待機
+            input("\nAfter completing authentication in the browser, press Enter to continue...")
+            
+            return True
+            
+        except Exception as e:
+            print(f"Authentication error: {e}")
+            return False
