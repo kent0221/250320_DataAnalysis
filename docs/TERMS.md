@@ -1,3 +1,8 @@
+---
+layout: default
+title: Terms of Service
+---
+
 # 利用規約
 
 最終更新日: 2025/03/25
